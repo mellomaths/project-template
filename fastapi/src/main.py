@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
 from src.api import router as api_router
-from src.environment import get_environment
+from src.environment import Environment
 
 app = FastAPI(swagger_ui_parameters={"docExpansion": "none"})
 
@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix=get_environment().api_path)
+app.include_router(api_router, prefix=Environment.load().api_path)
 
 
 def custom_openapi():
@@ -23,7 +23,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="Fast API", # TODO: Add API name
-        version=get_environment().api_version,
+        version=Environment.load().api_version,
         description="Fast API",  # TODO: Add Swagger description
         routes=app.routes,
     )

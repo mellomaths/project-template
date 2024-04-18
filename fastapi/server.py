@@ -31,19 +31,8 @@ def run_prod():
     subprocess.run(cmd)
 
 
-def run():
-    port = int(getenv('PORT'))
-    env = getenv('PY_ENV')
-    if env == 'prod':
-        return run_prod()
-
-    auto_refresh = False
-    log_level = 'info'
-    if env == 'local':
-        auto_refresh = True
-        log_level = 'debug'
-
-    uvicorn.run(MAIN_APP, host="127.0.0.1", port=port, log_level=log_level, reload=auto_refresh)
+def run_local():
+    uvicorn.run(MAIN_APP, host="127.0.0.1", port=4000, log_level="debug", reload=True)
     return
 
 
@@ -71,3 +60,6 @@ def get_api_user_token():
     print(f'Token: {token}')
     print('Use this as Bearer Token when sending requests to the API')
     db_session.close()
+
+if __name__ == "__main__":
+    run_local()

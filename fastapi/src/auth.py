@@ -1,4 +1,3 @@
-import pandas as pd
 import uuid
 import base64
 import os
@@ -15,7 +14,7 @@ from sqlalchemy import select
 
 from src.dependencies import get_database_session, get_logger, get_auth_scheme, get_environment
 from src.security.models.api_user import ApiUser
-from fastapi.src.environment import Environment
+from src.environment import Environment
 
 
 def grant_access_to_api_user(
@@ -27,18 +26,14 @@ def grant_access_to_api_user(
     logger = logger.getChild("grant_access_to_api_user")
     token = credentials.credentials
     username, token, salt = read_token(token)
-    query = select(ApiUser.id, ApiUser.name, ApiUser.token).where(ApiUser.name == username)
-    df = pd.read_sql(
-        query,
-        db_session.bind,
-    )
-    if (df.shape[0] == 0):
+    user = db_session.query(ApiUser).filter(ApiUser.name == username).one_or_none()
+    if (user is None):
         logger.error(f'User (token={token}) not registered in Database')
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
     
     private_key = env.token_crypt_private_key
     saltB = salt.encode('latin-1')
-    decrypted_token = decrypt_token(df['token'][0], private_key, saltB)
+    decrypted_token = decrypt_token(user.token, private_key, saltB)
     if (decrypted_token != token):
         logger.error(f'User token is invalid')
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
@@ -85,18 +80,14 @@ def gen_user_token(username: str, token: str, salt: str):
 
 def get_user_token(username: str, db_session: Session):
     env = get_environment()
-    query = select(ApiUser.id, ApiUser.name, ApiUser.token, ApiUser.token_salt).where(ApiUser.name == username)
-    df = pd.read_sql(
-        query,
-        db_session.bind,
-    )
-    if (df.shape[0] == 0):
+    user = db_session.query(ApiUser).filter(ApiUser.name == username).one_or_none()
+    if (user is None):
         print(f'User not registered in Database')
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
 
     private_key = env.token_crypt_private_key
-    salt = df.token_salt[0]
-    decrypted_token = decrypt_token(df.token[0], private_key, salt.encode('latin-1'))
+    salt = user.token_salt
+    decrypted_token = decrypt_token(user.token, private_key, salt.encode('latin-1'))
     user_token = gen_user_token(username, decrypted_token, salt)
     return user_token
 
@@ -104,12 +95,8 @@ def get_user_token(username: str, db_session: Session):
 
 def add_new_api_user(username: str, db_session: Session):
     env = get_environment()
-    query = select(ApiUser.id, ApiUser.name).where(ApiUser.name == username)
-    df = pd.read_sql(
-        query,
-        db_session.bind,
-    )
-    if (df.shape[0] != 0):
+    user = db_session.query(ApiUser).filter(ApiUser.name == username).one_or_none()
+    if (user is not None):
         print(f'User {username} already created')
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f'User {username} already created')
 

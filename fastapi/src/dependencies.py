@@ -2,7 +2,7 @@ import logging
 from fastapi import Depends
 from fastapi.security import HTTPBearer
 
-from fastapi.src.environment import Environment
+from src.environment import Environment
 from src.database import SessionLocal
 
 

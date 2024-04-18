@@ -2,9 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-from fastapi.src.environment import Environment
+from src.environment import Environment
 
-SQLALCHEMY_DATABASE_URL = Environment.load_environment().database_url
+SQLALCHEMY_DATABASE_URL = Environment.load().database_url
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
