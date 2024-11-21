@@ -35,7 +35,10 @@ npx ts-jest config:init
     ...
     "incremental": true,
     "experimentalDecorators": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "include": [
+      "src", "test"
+    ]
 }
 ```
 
