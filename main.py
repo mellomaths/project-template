@@ -11,6 +11,7 @@ import os
 class Library(StrEnum):
     FASTAPI = "fastapi"
     NEXTJS = "nextjs"
+    EXPRESS = "express" # ! To be implemented
     NESTJS = "nestjs" # ! To be implemented
 
 
